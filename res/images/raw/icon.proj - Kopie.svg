@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="16mm"
+   height="16mm"
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="icon.proj.svg"
+   inkscape:export-filename="icon.png"
+   inkscape:export-xdpi="203.2"
+   inkscape:export-ydpi="203.2"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="4"
+     inkscape:cx="-39.125"
+     inkscape:cy="19.5"
+     inkscape:window-width="2498"
+     inkscape:window-height="1417"
+     inkscape:window-x="54"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1065"
+       color="#404040"
+       opacity="0.14901961"
+       empcolor="#232323"
+       empopacity="0.30196078"
+       enabled="false"
+       originx="-7.9169901"
+       originy="-4.2793371" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect7283"
+       is_visible="true"
+       lpeversion="1" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect6549"
+       is_visible="true"
+       lpeversion="1" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect6545"
+       is_visible="true"
+       lpeversion="1" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect6541"
+       is_visible="true"
+       lpeversion="1" />
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect2061"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect2057"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <pattern
+       id="EMFhbasepattern"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+    <pattern
+       id="EMFhbasepattern-4"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-7.9169905,-4.2793375)">
+    <path
+       id="path11064"
+       style="fill:#cc0000;fill-opacity:1;stroke:none;stroke-width:0.314553;stroke-linecap:round;stroke-dasharray:none"
+       d="m 20.011949,7.9892088 c -0.334433,-0.0031 -0.64111,0.040902 -0.889926,0.1538032 -1.421161,0.6448496 -2.111639,2.251769 -2.661334,3.829529 l -1.557593,-1.925655 -1.165084,0.942825 2.149693,2.656887 c -0.599733,1.727422 -1.329865,3.705337 -2.944048,4.450967 -1.065578,0.492215 -3.4872493,-0.488082 -3.4872493,-0.488082 0,0 1.8707333,2.809202 3.2689903,2.664446 2.13383,-0.220906 3.818027,-2.829376 4.583877,-4.869703 l 2.054567,2.539536 1.165083,-0.942824 -2.726678,-3.370786 c 0.495466,-1.892802 1.525893,-3.367588 3.006281,-4.3278351 0.741049,-0.480678 2.619104,-0.4031786 2.619104,-0.4031786 0,0 -1.96647,-0.8966807 -3.415683,-0.9099295 z" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.8164px;font-family:'Cambria Math';-inkscape-font-specification:'Cambria Math';fill:#000000;stroke:#000000;stroke-width:0.793577;stroke-linecap:round;stroke-dasharray:none"
+       x="8.787406"
+       y="14.370562"
+       id="text11062"><tspan
+         sodipodi:role="line"
+         id="tspan11060"
+         style="fill:#000000;stroke:#000000;stroke-width:0.793577;stroke-dasharray:none"
+         x="8.787406"
+         y="14.370562">∂</tspan></text>
+  </g>
+</svg>
