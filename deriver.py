@@ -25,7 +25,7 @@ def get_derivations(formula: str):
         print(f"f_d{sym}: {sympy.latex(diff_formula)}")
 
 
-def latex_to_svg(formula, terminator: MutableBool) -> Optional[Path]:
+def latex_to_svg(formula, terminator: MutableBool = MutableBool(False)) -> Optional[Path]:
     rc('text', usetex=True)
 
     if terminator.state:
@@ -47,6 +47,6 @@ def latex_to_svg(formula, terminator: MutableBool) -> Optional[Path]:
 
 
 if __name__ == '__main__':
-    t_formula = r"x^2 \cdot \frac{y}{z \cdot \pi \cdot \cos(v)}"
+    t_formula = r"x^2 \cdot \frac{e y}{z \cdot \pi \cdot \cos(v) cos(x)}"
     get_derivations(t_formula)
     latex_to_svg(t_formula)
