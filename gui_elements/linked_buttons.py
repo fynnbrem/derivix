@@ -5,12 +5,52 @@ from PySide6.QtWidgets import QPushButton, QApplication, QVBoxLayout, QWidget
 
 
 class ButtonGroup:
-    def __init__(self):
+    """A button group to link multiple `LinkedButton`.
+    All clicks on those buttons get delegated to this object to manage which buttons
+    should get checked and remain checked, depending on the keyboard modified (ctrl, shift or none).
+
+    The logic applied here closely mimics Windows file explorer:
+    - With no modifier:
+        The clicked button will be toggled.
+        All other buttons will be un-checked.
+    - With ctrl:
+        The clicked button will be toggled.
+        All other buttons keep their respective state.
+    - With shift:
+        All buttons between the last-clicked button and the clicked button will be checked.
+        All other buttons will be un-checked.
+        If there is no last-clicked button, the selection will expand from the top instead.
+
+        As this behaviour requires clean indexing of the managed buttons, this modifier can be disabled
+        with `allow_shift`.
+
+    That logic is managed by `ask_for_check()`.
+    """
+    exclusive_groups: list["ButtonGroup"]
+    """A list of of `ButtonGroup` which are on the same control level as this one.
+    All `ButtonGroup` listed here will become unchecked when any button in this group gets clicked."""
+
+    def __init__(self, allow_shift = True):
         self.buttons: list[LinkedButton] = list()
         self.last_selected: Optional[LinkedButton] = None
+        self.allow_shift = allow_shift
+        self.exclusive_groups = list()
 
     def ask_for_check(self, button: "LinkedButton", modifier: None | Literal["ctrl", "shift"]):
-        if modifier == "shift":
+        """Should be called after invoking a button.
+        Decides the new check-state of this very button and the buttons in the same group.
+        Also unchecks any other group listed in `exclusive_groups`.
+
+        For details, refer to the DocString of this Class.
+
+        :param button:
+            The button that invoked this method.
+        :param modifier:
+            The keyboard modifier that was pressed during invocation of the button.
+        """
+        for group in self.exclusive_groups:
+            group.set_all(False)
+        if modifier == "shift" and self.allow_shift:
             if self.last_selected is not None:
                 select_range = (button.index, self.last_selected.index)
             else:
@@ -38,9 +78,20 @@ class ButtonGroup:
             self.last_selected = button
 
     def add(self, button: "LinkedButton"):
+        """Adds the `button` to this group and correspondingly assigns the `button.index` and `button.button_group`."""
         button.button_group = self
         button.index = len(self.buttons)
         self.buttons.append(button)
+
+    def set_all(self, state: bool):
+        """Sets the checked `state` of all buttons of this group."""
+        for button in self.buttons:
+            button.setChecked(state)
+
+    def get_by_check_state(self, state=True):
+        """Returns all buttons for which the checked-state is `state`.
+        `state` is `True` by default, so it returns all checked buttons."""
+        return [button for button in self.buttons if button.isChecked() == state]
 
 
 class LinkedButton(QPushButton):

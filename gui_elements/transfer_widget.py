@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QLabel, QApplication
     QVBoxLayout, QHBoxLayout
 
 from gui_elements.abstracts import WidgetControl
+from gui_elements.linked_buttons import LinkedButton, ButtonGroup
 
 
 class TransferWidget(QWidget, WidgetControl):
@@ -47,12 +48,19 @@ class TransferWidget(QWidget, WidgetControl):
         self.left_container.setFrameShape(QFrame.Shape.Box)
         self.right_container.setFrameShape(QFrame.Shape.Box)
 
+
+    def init_control(self):
+        # region: Link the two button groups as exclusive:
+        self.left_container.button_group.exclusive_groups.append(self.right_container.button_group)
+        self.right_container.button_group.exclusive_groups.append(self.left_container.button_group)
+        # endregion
+
     @property
     def layout_(self) -> QGridLayout:
         return self.layout()
 
 
-T = TypeVar("T")
+T = TypeVar("T", bound=QWidget)
 
 
 @dataclass
@@ -62,23 +70,49 @@ class CardData:
     linked_widget: Optional[QWidget] = field(init=False)
 
     def unlink_widget(self):
+        """Deletes the linked widget and clears this object's reference to it."""
         self.linked_widget.parentWidget().layout().removeWidget(self.linked_widget)
         self.linked_widget.deleteLater()
         self.linked_widget = None
 
 
-class SquareCard(QPushButton):
-    def __init__(self, card: CardData):
-        super().__init__(card.name)
+class SquareCard(LinkedButton):
+    def __init__(self, card: CardData, button_group: ButtonGroup):
+        super().__init__(button_group, text=card.name)
         self.setFixedSize(30, 30)
         self.setCheckable(True)
         card.linked_widget = self
 
 
-class SquareCardContainer(QFrame, WidgetControl):
+class CardContainer(QFrame):
     def __init__(self):
         super().__init__()
         self.cards: list[CardData] = list()
+        self.button_group = ButtonGroup(allow_shift=False)
+
+    def add_card(self, card: CardData):
+        self.cards.append(card)
+        self._place_cards()
+
+    def remove_card(self, card: CardData):
+        card.unlink_widget()
+        self.cards.remove(card)
+        self._place_cards()
+
+    def _reorder_cards(self):
+        def key(c: CardData): return c.name
+
+        self.cards.sort(key=key)
+
+
+    def _place_cards(self):
+        """Sorts and places all cards according to that order."""
+        raise NotImplementedError()
+
+
+class SquareCardContainer(CardContainer, WidgetControl):
+    def __init__(self):
+        super().__init__()
         self.width = 3
         self.init_widget()
 
@@ -88,12 +122,14 @@ class SquareCardContainer(QFrame, WidgetControl):
         self.layout_.setSpacing(0)
         self.layout_.setContentsMargins(0, 0, 0, 0)
 
-    def add_card(self, card: CardData):
-        card_widget = SquareCard(card)
-        row = len(self.cards) // self.width
-        column = (len(self.cards)) % self.width
-        self.layout_.addWidget(card_widget, row, column)
-        self.cards.append(card)
+    def _place_cards(self):
+        while self.layout_.count() != 0:
+            self.layout_.takeAt(0)
+        for index, card in enumerate(self.cards):
+            card_widget = SquareCard(card, self.button_group)
+            row = index // self.width
+            column = index % self.width
+            self.layout_.addWidget(card_widget, row, column)
 
     @property
     def layout_(self) -> QGridLayout:
@@ -101,14 +137,15 @@ class SquareCardContainer(QFrame, WidgetControl):
 
 
 class InputCard(QFrame, WidgetControl):
-    def __init__(self, card: CardData):
+    def __init__(self, card: CardData, button_group: ButtonGroup):
         super().__init__()
         self.card = card
         card.linked_widget = self
+        self.button_group = button_group
         self.init_widget()
 
     def init_content(self):
-        self.display = QPushButton()
+        self.display = LinkedButton(self.button_group)
         self.equals = QLabel()
         self.input = QLineEdit()
 
@@ -132,6 +169,7 @@ class InputCard(QFrame, WidgetControl):
         self.equals.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.setFrameShape(QFrame.Shape.Box)
+
     def init_control(self):
         self.display.setCheckable(True)
 
@@ -140,10 +178,9 @@ class InputCard(QFrame, WidgetControl):
         return self.layout()
 
 
-class InputCardContainer(QFrame, WidgetControl):
+class InputCardContainer(CardContainer, WidgetControl):
     def __init__(self):
         super().__init__()
-        self.cards: list[CardData] = list()
         self.width = 3
         self.init_widget()
 
@@ -152,14 +189,16 @@ class InputCardContainer(QFrame, WidgetControl):
         self.layout_.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignVCenter)
         self.layout_.setContentsMargins(0, 0, 0, 0)
 
-    def add_card(self, card: CardData):
-        card_widget = InputCard(card)
-        self.layout_.addWidget(card_widget)
-        self.cards.append(card)
-
     @property
     def layout_(self) -> QGridLayout:
         return self.layout()
+
+    def _place_cards(self):
+        while self.layout_.count() != 0:
+            self.layout_.takeAt(0)
+        for card in self.cards:
+            card_widget = InputCard(card, self.button_group)
+            self.layout_.addWidget(card_widget)
 
 
 if __name__ == '__main__':
@@ -167,8 +206,8 @@ if __name__ == '__main__':
     win = TransferWidget()
 
     win.left_container.add_card(CardData("A"))
-    win.left_container.add_card(CardData("B"))
     win.left_container.add_card(CardData("C"))
+    win.left_container.add_card(CardData("B"))
     win.left_container.add_card(CardData("D"))
     win.right_container.add_card(CardData("A", 1.234))
     win.right_container.add_card(CardData("B", 2.234))
