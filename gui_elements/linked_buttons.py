@@ -130,6 +130,9 @@ class LinkedButton(QPushButton):
         ...
 
 
+
+
+
 if __name__ == '__main__':
     app = QApplication()
     wid = QWidget()
