@@ -3,7 +3,7 @@ from typing import TypeVar, Dict, Union
 from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton
 
 from gui_elements.abstracts import WidgetControl
-from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer
+from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton
 
 
 class TransferWidget(QWidget, WidgetControl):
@@ -50,9 +50,9 @@ class TransferWidget(QWidget, WidgetControl):
         self.containers["right"].button_group.exclusive_groups.append(self.containers["left"].button_group)
         # endregion
         for key, button in self.transfer_buttons.items():
-            button.clicked.connect(lambda k=key: self.transfer_cards(k))
-
-
+            button.clicked.connect(lambda *, k=key: self.transfer_cards(k))
+            # ↑ Must use keyword-only for the parameters,
+            # as otherwise Qt will use its overloaded variant and pass in the button state.
 
     @property
     def layout_(self) -> QGridLayout:
@@ -67,12 +67,12 @@ class TransferWidget(QWidget, WidgetControl):
             from_container = "left"
             to_container = "right"
 
-        cards = self.containers[from_container].button_group.get_by_check_state()
-        for card in cards:
-            ...
+        card_buttons: list[CardButton] = self.containers[from_container].button_group.get_by_check_state()
+        for card_button in card_buttons:
+            card = card_button.card
+            self.containers[from_container].remove_card(card)
+            self.containers[to_container].add_card(card)
 
-
-T = TypeVar("T", bound=QWidget)
 
 if __name__ == '__main__':
     app = QApplication()

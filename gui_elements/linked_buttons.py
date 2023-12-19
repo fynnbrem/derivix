@@ -30,7 +30,7 @@ class ButtonGroup:
     """A list of of `ButtonGroup` which are on the same control level as this one.
     All `ButtonGroup` listed here will become unchecked when any button in this group gets clicked."""
 
-    def __init__(self, allow_shift = True):
+    def __init__(self, allow_shift=True):
         self.buttons: list[LinkedButton] = list()
         self.last_selected: Optional[LinkedButton] = None
         self.allow_shift = allow_shift
@@ -83,6 +83,12 @@ class ButtonGroup:
         button.index = len(self.buttons)
         self.buttons.append(button)
 
+    def remove(self, button: "LinkedButton"):
+        """Removes the `button` from the group and shifts the indices of the remaining buttons accordingly."""
+        self.buttons.remove(button)
+        for index, button in enumerate(self.buttons):
+            button.index = index
+
     def set_all(self, state: bool):
         """Sets the checked `state` of all buttons of this group."""
         for button in self.buttons:
@@ -103,6 +109,13 @@ class LinkedButton(QPushButton):
         self.setCheckable(True)
         self.clicked.connect(self.delegate)
         control_group.add(self)
+        self.destroyed.connect(lambda: self.clean_up())
+        # ↑ Must use lambda instead of the direct callable as the method on
+        # itself does not exist during destruction of the widget.
+
+    def clean_up(self):
+        """Remove the button from its `ButtonGroup`."""
+        self.button_group.remove(self)
 
     def delegate(self):
         # ↓ Due to this method only being linked to the click event
@@ -127,10 +140,6 @@ class LinkedButton(QPushButton):
         # endregion
 
         self.button_group.ask_for_check(self, modifier=modifier)
-        ...
-
-
-
 
 
 if __name__ == '__main__':

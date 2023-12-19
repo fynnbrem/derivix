@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Type, Union
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QLineEdit, QHBoxLayout, QBoxLayout
@@ -13,29 +13,38 @@ class CardData:
     name: str
     value: Optional[float] = None
     linked_widget: Optional[QWidget] = field(init=False)
+    container: Optional["CardContainer"] = field(init=False)
 
-    def unlink_widget(self):
-        """Deletes the linked widget and clears this object's reference to it."""
+    def unlink(self):
+        """Unlinks this card from its container by removing the reference to it and deleting the widget."""
         self.linked_widget.parentWidget().layout().removeWidget(self.linked_widget)
         self.linked_widget.deleteLater()
         self.linked_widget = None
-
-
-class SquareCard(LinkedButton):
-    def __init__(self, card: CardData, button_group: ButtonGroup):
-        super().__init__(button_group, text=card.name)
-        self.setFixedSize(30, 30)
-        self.setCheckable(True)
-        card.linked_widget = self
+        self.container = None
 
 
 class CardButton(LinkedButton):
+    """Extends on the `LinkedButton` by offering an attribute to refer to the corresponding `CardData`.
+    Helps in jumping from a button action to the corresponding card.
+    """
+
     def __init__(self, card: CardData, control_group: ButtonGroup, text: str = ""):
         super().__init__(control_group=control_group, text=text)
         self.card = card
 
 
+
+class SquareCard(CardButton):
+    def __init__(self, card: CardData, button_group: ButtonGroup):
+        super().__init__(card, button_group, text=card.name)
+        self.setFixedSize(30, 30)
+        self.setCheckable(True)
+        card.linked_widget = self
+
+
 class CardContainer(QFrame):
+    card_widget_type: Union[Type["SquareCard"], Type["InputCard"]]
+
     def __init__(self):
         super().__init__()
         self.cards: list[CardData] = list()
@@ -43,10 +52,14 @@ class CardContainer(QFrame):
 
     def add_card(self, card: CardData):
         self.cards.append(card)
+        card.container = self
+        self.card_widget_type(card, button_group=self.button_group)
+        self._reorder_cards()
         self._place_cards()
 
     def remove_card(self, card: CardData):
-        card.unlink_widget()
+        card.unlink()
+        card.container = None
         self.cards.remove(card)
         self._place_cards()
 
@@ -56,11 +69,13 @@ class CardContainer(QFrame):
         self.cards.sort(key=key)
 
     def _place_cards(self):
-        """Sorts and places all cards according to that order."""
+        """Places all cards anew, according to their current order."""
         raise NotImplementedError()
 
 
 class SquareCardContainer(CardContainer, WidgetControl):
+    card_widget_type = SquareCard
+
     def __init__(self):
         super().__init__()
         self.width = 3
@@ -76,10 +91,9 @@ class SquareCardContainer(CardContainer, WidgetControl):
         while self.layout_.count() != 0:
             self.layout_.takeAt(0)
         for index, card in enumerate(self.cards):
-            card_widget = SquareCard(card, self.button_group)
             row = index // self.width
             column = index % self.width
-            self.layout_.addWidget(card_widget, row, column)
+            self.layout_.addWidget(card.linked_widget, row, column)
 
     @property
     def layout_(self) -> QGridLayout:
@@ -95,7 +109,7 @@ class InputCard(QFrame, WidgetControl):
         self.init_widget()
 
     def init_content(self):
-        self.display = LinkedButton(self.button_group)
+        self.display = CardButton(self.card, self.button_group)
         self.equals = QLabel()
         self.input = QLineEdit()
 
@@ -129,6 +143,8 @@ class InputCard(QFrame, WidgetControl):
 
 
 class InputCardContainer(CardContainer, WidgetControl):
+    card_widget_type = InputCard
+
     def __init__(self):
         super().__init__()
         self.width = 3
@@ -147,5 +163,4 @@ class InputCardContainer(CardContainer, WidgetControl):
         while self.layout_.count() != 0:
             self.layout_.takeAt(0)
         for card in self.cards:
-            card_widget = InputCard(card, self.button_group)
-            self.layout_.addWidget(card_widget)
+            self.layout_.addWidget(card.linked_widget)
