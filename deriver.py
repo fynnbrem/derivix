@@ -1,14 +1,12 @@
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
-from sympy import diff
-import sympy
 import matplotlib.pyplot as plt
+import sympy
 from matplotlib import rc
-from io import BytesIO
-
+from sympy import diff
 from sympy.parsing.latex import parse_latex
 
 from utils import MutableBool
@@ -23,6 +21,13 @@ def get_derivations(formula: str):
     for sym in symbols:
         diff_formula = diff(formula, sym)
         print(f"f_d{sym}: {sympy.latex(diff_formula)}")
+
+def get_symbols(formula: str):
+    formula = parse_latex(formula)
+    symbols = sorted(formula.free_symbols, key=lambda sym: sym.name)
+
+    return symbols
+
 
 
 def latex_to_svg(formula, terminator: MutableBool = MutableBool(False)) -> Optional[Path]:

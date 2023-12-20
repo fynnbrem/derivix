@@ -1,6 +1,7 @@
 from typing import Dict, Union
 
-from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton, QLabel
 
 from gui_elements.abstracts import WidgetControl
 from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton
@@ -29,10 +30,13 @@ class TransferWidget(QWidget, WidgetControl):
 
     def init_positions(self):
         self.setLayout(QGridLayout())
-        self.layout_.addWidget(self.containers["left"], 1, 1, 5, 1)
-        self.layout_.addWidget(self.containers["right"], 1, 5, 5, 1)
-        self.layout_.addWidget(self.transfer_buttons["left"], 4, 3)
-        self.layout_.addWidget(self.transfer_buttons["right"], 2, 3)
+        self.layout_.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.layout_.addWidget(QLabel("Variables"), 1, 1)
+        self.layout_.addWidget(QLabel("Constants"), 1, 5)
+        self.layout_.addWidget(self.containers["left"], 2, 1, 5, 1)
+        self.layout_.addWidget(self.containers["right"], 2, 5, 5, 1)
+        self.layout_.addWidget(self.transfer_buttons["left"], 5, 3)
+        self.layout_.addWidget(self.transfer_buttons["right"], 3, 3)
 
     def init_style(self):
         self.layout_.setRowMinimumHeight(3, 20)

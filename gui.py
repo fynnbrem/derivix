@@ -1,96 +1,20 @@
 import logging
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Optional
 
 from PySide6.QtCore import QThreadPool, QRunnable, Signal, QObject, QTimer
-from PySide6.QtGui import QPixmap, Qt, QIcon
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QWidget, QLineEdit, QFrame, QGridLayout, QPushButton, \
-    QBoxLayout
+from PySide6.QtGui import Qt, QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLineEdit, QGridLayout, QPushButton, QLabel
 
 from deriver import latex_to_svg
 from gui_elements.abstracts import WidgetControl
-from gui_elements.animations import JumpyDots
+from gui_elements.formula_display import FormulaDisplay
+from gui_elements.prefabs import LabelWithLine
+from gui_elements.transfer_widget import TransferWidget
+from res import ToolIcons
 from utils import MutableBool
 
 app = QApplication()
-
-
-class FormulaDisplay(QLabel, WidgetControl):
-    default_height = 60
-    default_width = 240
-    loading_animation_base = lambda: JumpyDots(3, 8, Qt.GlobalColor.darkGray)
-    loading_animation: Optional[JumpyDots]
-    mode: Literal["s", "l", "d", "e"]
-
-    def __init__(self):
-        super().__init__()
-        self.setLayout(QBoxLayout(QBoxLayout.Direction.TopToBottom))
-        self.layout_.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.init_widget()
-        self.standby_mode()
-
-    def init_positions(self):
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-    def init_content(self):
-        self.loading_animation = None
-
-    def init_style(self):
-        self.setFrameShape(QFrame.Shape.Box)
-        self.setMinimumWidth(self.default_width)  # The height is set by the individual modes.
-
-    @property
-    def layout_(self) -> QBoxLayout:
-        return self.layout()
-
-    def loading_mode(self):
-        # ↓ Prevent resetting the loading animation if it is already running.
-        if self.mode == "l":
-            return
-        self.mode = "l"
-        self.clear()
-        self.loading_animation = self.__class__.loading_animation_base()
-        self.layout_.addWidget(self.loading_animation)
-
-    def display_mode(self, svg: Optional[str]):
-        self.mode = "d"
-        self.clear()
-        if svg == "" or svg is None:
-            return
-        pix = QPixmap(svg)
-        self.setPixmap(pix)
-        self.setFixedHeight(int(pix.height() * 1.1))
-
-    def standby_mode(self):
-        self.mode = "s"
-        self.clear()
-        self.setText("Your formula will be shown here")
-
-    def error_mode(self, err: Exception):
-        self.clear()
-        self.mode = "e"
-        error_text = str(err)
-        if isinstance(err, RuntimeError):
-            text = "Unable to parse formula:\n"
-            if "Undefined control sequence" in error_text:
-                text += "Undefined control sequence in formula."
-            else:
-                text += "Unknown error."
-                logging.error(err)
-        else:
-            text = f"An unexpected error occurred during parsing:\n{type(err)}"
-            logging.error(err)
-
-        self.setText(text)
-
-    def clear(self):
-        self.setText("")
-        self.setFixedHeight(self.default_height)
-        if self.loading_animation is not None:
-            self.loading_animation.deleteLater()
-            self.loading_animation = None
-        self.setPixmap(QPixmap())
 
 
 class MainWindow(QMainWindow, WidgetControl):
@@ -104,16 +28,41 @@ class MainWindow(QMainWindow, WidgetControl):
         self.init_widget()
 
     def init_content(self):
+
         self.formula_input = QLineEdit()
         self.derive_button = QPushButton()
-        self.formula_display = FormulaDisplay()
+        self.formula_display = FormulaDisplay(show_copy=False)
+
+        self.symbol_manager = TransferWidget()
 
     def init_positions(self):
-        self.layout_.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout = self.layout_
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.layout_.addWidget(self.formula_input, 1, 1)
-        self.layout_.addWidget(self.derive_button, 1, 2)
-        self.layout_.addWidget(self.formula_display, 2, 1, 1, 2)
+        layout.addWidget(LabelWithLine(
+            "<h3>Formula</h3>", pixmap=ToolIcons.var_f.get_pixmap()),
+            layout.rowCount(), 1, 1, -1
+        )
+
+        layout.addWidget(QLabel("f ="), layout.rowCount(), 1)
+        layout.addWidget(self.formula_input, layout.rowCount() - 1, 2)
+        layout.addWidget(self.derive_button, layout.rowCount() - 1, 3)
+        layout.addWidget(self.formula_display, layout.rowCount(), 1, 1, -1)
+
+        layout.addWidget(LabelWithLine(
+            "<h3>Symbols</h3>", pixmap=ToolIcons.var_x.get_pixmap()),
+            layout.rowCount(), 1, 1, -1
+        )
+        layout.addWidget(self.symbol_manager, layout.rowCount(), 1, 1, -1)
+        layout.addWidget(LabelWithLine(
+            "<h3>Error Formula</h3>", pixmap=ToolIcons.var_c_delta.get_pixmap()),
+            layout.rowCount(), 1, 1, -1
+        )
+
+        layout.addWidget(LabelWithLine(
+            "<h3>Partial Derivations</h3>", pixmap=ToolIcons.var_v_delta.get_pixmap()),
+            layout.rowCount(), 1, 1, -1
+        )
 
     def init_style(self):
         self.setWindowTitle("derivix")
@@ -147,15 +96,15 @@ class MainWindow(QMainWindow, WidgetControl):
             if self.worker is not None:
                 self.worker.terminate()
             self.worker = ImageWorker(self.formula_input.text())
-            self.worker.signals.finished.connect(self.set_image)
+            self.worker.signals.finished.connect(lambda p: self.set_image(*p))
             self.worker.signals.error.connect(self.formula_display.error_mode)
             self.thread_pool.start(self.worker)
 
         self.image_timer.timeout.connect(start_render)
         self.formula_input.textChanged.connect(queue_render)
 
-    def set_image(self, svg: Optional[str]):
-        self.formula_display.display_mode(svg)
+    def set_image(self, svg: Optional[str], formula: Optional[str]):
+        self.formula_display.display_mode(svg, formula)
 
     @property
     def layout_(self) -> QGridLayout:
@@ -163,7 +112,7 @@ class MainWindow(QMainWindow, WidgetControl):
 
 
 class WorkerSignals(QObject):
-    finished = Signal(str)
+    finished = Signal(tuple)
     error = Signal(Exception)
 
 
@@ -182,7 +131,7 @@ class ImageWorker(QRunnable):
             else:
                 signal = ""
 
-            self.signals.finished.emit(str(signal))
+            self.signals.finished.emit((signal, self.formula))
         except Exception as err:
             self.signals.error.emit(err)
 

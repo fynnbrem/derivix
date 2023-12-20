@@ -33,11 +33,13 @@ class CardButton(LinkedButton):
         self.card = card
 
 
-
 class SquareCard(CardButton):
+    default_height = 30
+    default_width = 30
+
     def __init__(self, card: CardData, button_group: ButtonGroup):
         super().__init__(card, button_group, text=card.name)
-        self.setFixedSize(30, 30)
+        self.setFixedSize(self.default_width, self.default_height)
         self.setCheckable(True)
         card.linked_widget = self
 
@@ -87,6 +89,10 @@ class SquareCardContainer(CardContainer, WidgetControl):
         self.layout_.setSpacing(0)
         self.layout_.setContentsMargins(0, 0, 0, 0)
 
+    def init_style(self):
+        self.setFixedWidth(self.width * SquareCard.default_width)
+        self.setMinimumHeight(SquareCard.default_height)
+
     def _place_cards(self):
         while self.layout_.count() != 0:
             self.layout_.takeAt(0)
@@ -101,6 +107,8 @@ class SquareCardContainer(CardContainer, WidgetControl):
 
 
 class InputCard(QFrame, WidgetControl):
+    default_width = 150
+
     def __init__(self, card: CardData, button_group: ButtonGroup):
         super().__init__()
         self.card = card
@@ -127,7 +135,8 @@ class InputCard(QFrame, WidgetControl):
 
     def init_style(self):
         self.layout_.setContentsMargins(3, 1, 3, 1)
-        self.setFixedWidth(150)
+        self.setFixedWidth(self.default_width)
+        self.setMinimumHeight(30)
         self.display.setFixedSize(30, 30)
 
         self.equals.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -154,6 +163,9 @@ class InputCardContainer(CardContainer, WidgetControl):
         self.setLayout(QBoxLayout(QBoxLayout.Direction.TopToBottom))
         self.layout_.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignVCenter)
         self.layout_.setContentsMargins(0, 0, 0, 0)
+
+    def init_style(self):
+        self.setFixedWidth(InputCard.default_width)
 
     @property
     def layout_(self) -> QGridLayout:
