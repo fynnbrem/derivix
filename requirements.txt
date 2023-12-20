@@ -1,0 +1,5 @@
+antlr4-python3-runtime~=4.11.0
+matplotlib~=3.8.2
+pyperclip~=1.8.2
+PySide6~=6.6.1
+sympy~=1.12
