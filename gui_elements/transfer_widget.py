@@ -1,4 +1,4 @@
-from typing import TypeVar, Dict, Union
+from typing import Dict, Union
 
 from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton
 
