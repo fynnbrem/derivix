@@ -1,9 +1,11 @@
 import logging
+from pathlib import Path
 from typing import Optional, Literal
 
 import pyperclip
 from PySide6.QtGui import Qt, QPixmap
-from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QGridLayout, QVBoxLayout, QWidget
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QGridLayout, QVBoxLayout, QWidget, QSizePolicy
 
 from gui_elements.abstracts import WidgetControl
 from gui_elements.animations import JumpyDots
@@ -73,15 +75,13 @@ class FormulaDisplay(QFrame, WidgetControl):
         self.loading_animation = self.__class__.loading_animation_base()
         self.formula_layout.addWidget(self.loading_animation)
 
-    def display_mode(self, svg: Optional[str], formula: Optional[str]):
+    def display_mode(self, svg_file: Path, formula: Optional[str]):
         self.mode = "d"
         self.clear()
-        if svg == "" or svg is None:
-            return
         self.formula = formula
         if self.show_copy:
             self.copy_button.show()
-        pix = QPixmap(svg)
+        pix = QPixmap(svg_file)
         self.formula_widget.setPixmap(pix)
         self.setFixedWidth(int(pix.width() * 1.1))
         self.setFixedHeight(int(pix.height() * 1.1 + 30))
@@ -113,7 +113,7 @@ class FormulaDisplay(QFrame, WidgetControl):
         self.formula_widget.setText("")
         self.formula = None
         self.setFixedHeight(self.default_height)
-        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
         if self.loading_animation is not None:
             self.loading_animation.deleteLater()
             self.loading_animation = None

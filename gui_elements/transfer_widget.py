@@ -18,7 +18,7 @@ class TransferWidget(QWidget, WidgetControl):
 
     def init_content(self):
         self.containers = dict()
-        self.containers["left"] = SquareCardContainer()
+        self.containers["left"] = InputCardContainer()
         self.containers["right"] = InputCardContainer()
         self.transfer_buttons = dict()
         self.transfer_buttons["left"] = QPushButton()

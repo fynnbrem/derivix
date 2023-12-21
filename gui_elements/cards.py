@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QLineEdit, Q
 
 from gui_elements.abstracts import WidgetControl
 from gui_elements.linked_buttons import LinkedButton, ButtonGroup
+from gui_elements.number_line_edit import NumberEntry
 
 
 @dataclass
@@ -21,6 +22,12 @@ class CardData:
         self.linked_widget.deleteLater()
         self.linked_widget = None
         self.container = None
+
+    def get_value(self):
+        return self.value
+
+    def set_value(self, value):
+        self.value = value
 
 
 class CardButton(LinkedButton):
@@ -52,18 +59,26 @@ class CardContainer(QFrame):
         self.cards: list[CardData] = list()
         self.button_group = ButtonGroup(allow_shift=False)
 
-    def add_card(self, card: CardData):
+    def add_card(self, card: CardData, place=True):
         self.cards.append(card)
         card.container = self
         self.card_widget_type(card, button_group=self.button_group)
-        self._reorder_cards()
-        self._place_cards()
+        if place:
+            self._reorder_cards()
+            self._place_cards()
 
-    def remove_card(self, card: CardData):
+    def remove_card(self, card: CardData, do_place=True):
         card.unlink()
         card.container = None
         self.cards.remove(card)
+        if do_place:
+            self._place_cards()
+
+    def remove_all(self):
+        for card in self.cards:
+            self.remove_card(card, do_place=False)
         self._place_cards()
+
 
     def _reorder_cards(self):
         def key(c: CardData): return c.name
@@ -108,6 +123,7 @@ class SquareCardContainer(CardContainer, WidgetControl):
 
 class InputCard(QFrame, WidgetControl):
     default_width = 150
+    default_height = 40
 
     def __init__(self, card: CardData, button_group: ButtonGroup):
         super().__init__()
@@ -119,7 +135,7 @@ class InputCard(QFrame, WidgetControl):
     def init_content(self):
         self.display = CardButton(self.card, self.button_group)
         self.equals = QLabel()
-        self.input = QLineEdit()
+        self.input = NumberEntry(self.card.get_value, self.card.set_value)
 
     def init_values(self):
         self.display.setText(self.card.name)
@@ -136,7 +152,7 @@ class InputCard(QFrame, WidgetControl):
     def init_style(self):
         self.layout_.setContentsMargins(3, 1, 3, 1)
         self.setFixedWidth(self.default_width)
-        self.setMinimumHeight(30)
+        self.setMinimumHeight(self.default_height)
         self.display.setFixedSize(30, 30)
 
         self.equals.setAlignment(Qt.AlignmentFlag.AlignCenter)

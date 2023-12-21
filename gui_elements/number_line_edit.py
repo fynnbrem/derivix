@@ -5,7 +5,6 @@ from PySide6 import QtGui
 from PySide6.QtWidgets import QLineEdit, QApplication, QWidget, QVBoxLayout
 
 from res.strings import invalid_number_format_error
-from utils import Subscribable
 from utils.number_formatting import congregate_zeroes, number_to_scientific
 
 
@@ -16,16 +15,17 @@ class NumberEntry(QLineEdit):
     Also handles validation of the input text.
     """
 
-    number: Subscribable[float | int | None]
+    # number: Property[float | int | None]
     """The represented number. Always contains the original value, 
     which might not be shown to its full extent by `display_mode()`"""
     _valid: bool
 
-    def __init__(self, number: float | int | None = None):
+    def __init__(self, number_get, number_set):
         super().__init__()
-        self.number = Subscribable(number)
         self.textEdited.connect(self.update_number)
         self._valid = True
+
+        self.number = property(number_get, number_set)
 
     def focusInEvent(self, event: QtGui.QFocusEvent) -> None:
         """Switch to edit mode when gaining focus."""
@@ -64,17 +64,17 @@ class NumberEntry(QLineEdit):
         valid = True
 
         if self.text().strip() == "":
-            self.number.val = None
+            self.number.fset(None)
         else:
             text = self.text().replace(",", "_")
             # ↑ Replace group-separating commas with underscores so Python can evaluate them normally.
             try:
-                self.number.val = int(text)
+                self.number.fset(int(text))
             except ValueError:
                 try:
-                    self.number.val = float(text)
+                    self.number.fset(float(text))
                 except ValueError:
-                    self.number.val = None
+                    self.number.fset(None)
                     valid = False
         self.valid = valid
 
@@ -84,8 +84,8 @@ class NumberEntry(QLineEdit):
         """
         if not self.valid:
             return
-        if self.number is not None:
-            f_number = congregate_zeroes(self.number.val)
+        if self.number.fget() is not None:
+            f_number = congregate_zeroes(self.number.fget())
             self.setText(f_number)
         else:
             self.setText("")
@@ -96,8 +96,8 @@ class NumberEntry(QLineEdit):
         """
         if not self.valid:
             return
-        if self.number is not None:
-            f_number = number_to_scientific(self.number.val)
+        if self.number.fget() is not None:
+            f_number = number_to_scientific(self.number.fget())
             self.setText(f_number)
         else:
             self.setText("")
