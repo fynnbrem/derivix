@@ -5,7 +5,8 @@ from typing import Optional, Literal
 import pyperclip
 from PySide6.QtGui import Qt, QPixmap
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QGridLayout, QVBoxLayout, QWidget, QSizePolicy
+from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QGridLayout, QVBoxLayout, QWidget, QSizePolicy, \
+    QApplication
 
 from gui_elements.abstracts import WidgetControl
 from gui_elements.animations import JumpyDots
@@ -82,8 +83,12 @@ class FormulaDisplay(QFrame, WidgetControl):
         if self.show_copy:
             self.copy_button.show()
         pix = QPixmap(svg_file)
+        screen_width = QApplication.primaryScreen().geometry().width()
+        max_width = int(screen_width * 0.9)
+        if pix.width() > max_width:
+            pix = pix.scaledToWidth(max_width, Qt.TransformationMode.SmoothTransformation)
         self.formula_widget.setPixmap(pix)
-        self.setFixedWidth(int(pix.width() * 1.1))
+        self.setFixedWidth(pix.width() + 50)
         self.setFixedHeight(int(pix.height() * 1.1 + 30))
 
     def standby_mode(self):

@@ -41,9 +41,11 @@ def get_symbols(formula: str):
 def as_gaussian_uncertainity(formulas: dict[Symbol, Mul]) -> str:
     latex_formulas = list()
     for symbol, formula in formulas.items():
-        latex_formulas.append(latex(formula) + rf"\cdot \Delta {symbol.name}")
+        formula = latex(formula) + rf"\cdot \Delta {symbol.name}"
+        formula = r"\left(" + formula + r"\right)^2"
+        latex_formulas.append(formula)
     full_formula = (" + ".join(latex_formulas))
-    full_formula = "\sqrt{" + full_formula + "}"
+    full_formula = "\Delta f = \sqrt{" + full_formula + "}"
     return full_formula
 
 

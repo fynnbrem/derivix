@@ -22,10 +22,12 @@ class NumberEntry(QLineEdit):
 
     def __init__(self, number_get, number_set):
         super().__init__()
-        self.textEdited.connect(self.update_number)
         self._valid = True
 
         self.number = property(number_get, number_set)
+        self.display_mode()
+
+        self.textEdited.connect(self.update_number)
 
     def focusInEvent(self, event: QtGui.QFocusEvent) -> None:
         """Switch to edit mode when gaining focus."""

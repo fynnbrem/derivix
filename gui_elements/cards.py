@@ -140,8 +140,6 @@ class InputCard(QFrame, WidgetControl):
     def init_values(self):
         self.display.setText(self.card.name)
         self.equals.setText("=")
-        if self.card.value is not None:
-            self.input.setText(str(self.card.value))
 
     def init_positions(self):
         self.setLayout(QHBoxLayout())
