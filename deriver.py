@@ -1,3 +1,4 @@
+import logging
 import tempfile
 import uuid
 from dataclasses import dataclass
@@ -11,9 +12,10 @@ from sympy import diff, Mul, latex, Symbol
 from sympy.parsing.latex import parse_latex
 
 from utils import MutableBool
-
+logging.basicConfig(level=logging.INFO)
 TEMP = tempfile.TemporaryDirectory()
 TEMP_PATH = Path(TEMP.name)
+logging.info(f"Created temporary folder at: `{TEMP_PATH}`")
 
 
 @dataclass
