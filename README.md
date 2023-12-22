@@ -1,4 +1,4 @@
-![](\res\images\banner.png)
+![](https://github.com/fynnbrem/derivix/blob/master/res/images/banner.png?raw=True)
 
 # Introduction
 A small programm to help with generating and handling complex formulas for gaussian uncertainty.
