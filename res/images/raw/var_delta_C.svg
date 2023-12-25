@@ -8,8 +8,8 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
-   sodipodi:docname="var_d.svg"
-   inkscape:export-filename="var_c_delta.png"
+   sodipodi:docname="var_delta_C.svg"
+   inkscape:export-filename="var_delta_C.png"
    inkscape:export-xdpi="384"
    inkscape:export-ydpi="384"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -29,8 +29,8 @@
      inkscape:document-units="mm"
      showgrid="true"
      inkscape:zoom="32"
-     inkscape:cx="5.328125"
-     inkscape:cy="11.46875"
+     inkscape:cx="5.640625"
+     inkscape:cy="10.34375"
      inkscape:window-width="2498"
      inkscape:window-height="1417"
      inkscape:window-x="54"
@@ -166,14 +166,19 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.8658px;font-family:'Microsoft YaHei';-inkscape-font-specification:'Microsoft YaHei';fill:#1f1f1f;fill-opacity:1;stroke-width:0.228084;stroke-linecap:round;stroke-opacity:0.0959233"
-       x="7.6573272"
-       y="8.5285015"
-       id="text2035"
+       x="2.939393"
+       y="8.2837725"
+       id="text450"
        transform="scale(1.0731775,0.93181231)"><tspan
          sodipodi:role="line"
-         id="tspan2033"
+         id="tspan448"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';stroke-width:0.228084"
-         x="7.6573272"
-         y="8.5285015">Δ</tspan></text>
+         x="2.939393"
+         y="8.2837725">Δ</tspan></text>
+    <path
+       id="path618"
+       style="fill:#1f1f1f;fill-opacity:1;stroke-width:0.105833;stroke-linecap:round"
+       d="m 9.7690738,4.8085042 c 0,0 -0.3695591,0.5187176 -0.5291666,0.79375 C 9.0419384,5.9433899 8.872316,6.300784 8.7107405,6.6605875 8.5161778,7.0938483 8.1815738,7.9835042 8.1815738,7.9835042 H 11.88574 c 0,0 -0.334603,-0.889656 -0.529166,-1.3229167 C 11.194998,6.300784 11.025376,5.9433898 10.827407,5.6022542 10.6678,5.3272217 10.29824,4.8085042 10.29824,4.8085042 Z m 0.2645832,0.79375 c 0,0 0.176389,0.3527778 0.264583,0.5291666 0.176389,0.3527779 0.529167,1.0583334 0.529167,1.0583334 H 9.2399075 c 0,0 0.3527775,-0.7055556 0.5291663,-1.0583334 0.088194,-0.1763889 0.2645832,-0.5291666 0.2645832,-0.5291666 z"
+       sodipodi:nodetypes="caaccaacccaccac" />
   </g>
 </svg>
