@@ -1,3 +1,4 @@
+from enum import Enum, Flag
 from typing import Dict, Union
 
 from PySide6.QtCore import Qt
@@ -7,9 +8,18 @@ from gui_elements.abstracts import WidgetControl
 from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton, MeasurandCardContainer
 
 
+class Filter(Flag):
+    """The two categories that a symbol can have.
+    `Include` will have its partial derivation included in the total formula while `Exclude` will not.
+
+    Can be handled like booleans."""
+    Include = True
+    Exclude = False
+
+
 class TransferWidget(QWidget, WidgetControl):
-    containers: Dict[str, Union["SquareCardContainer", "InputCardContainer"]]
-    transfer_buttons: Dict[str, QPushButton]
+    containers: Dict[Filter, Union["SquareCardContainer", "InputCardContainer"]]
+    transfer_buttons: Dict[Filter, QPushButton]
 
     def __init__(self):
         super().__init__()
@@ -18,25 +28,25 @@ class TransferWidget(QWidget, WidgetControl):
 
     def init_content(self):
         self.containers = dict()
-        self.containers["left"] = MeasurandCardContainer()
-        self.containers["right"] = InputCardContainer()
+        self.containers[Filter.Include] = MeasurandCardContainer()
+        self.containers[Filter.Exclude] = InputCardContainer()
         self.transfer_buttons = dict()
-        self.transfer_buttons["left"] = QPushButton()
-        self.transfer_buttons["right"] = QPushButton()
+        self.transfer_buttons[Filter.Include] = QPushButton()
+        self.transfer_buttons[Filter.Exclude] = QPushButton()
 
     def init_values(self):
-        self.transfer_buttons["left"].setText("<")
-        self.transfer_buttons["right"].setText(">")
+        self.transfer_buttons[Filter.Include].setText("<")
+        self.transfer_buttons[Filter.Exclude].setText(">")
 
     def init_positions(self):
         self.setLayout(QGridLayout())
         self.layout_.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.layout_.addWidget(QLabel("Include"), 1, 1)
         self.layout_.addWidget(QLabel("Exclude"), 1, 5)
-        self.layout_.addWidget(self.containers["left"], 2, 1, 5, 1)
-        self.layout_.addWidget(self.containers["right"], 2, 5, 5, 1)
-        self.layout_.addWidget(self.transfer_buttons["left"], 5, 3)
-        self.layout_.addWidget(self.transfer_buttons["right"], 3, 3)
+        self.layout_.addWidget(self.containers[Filter.Include], 2, 1, 5, 1)
+        self.layout_.addWidget(self.containers[Filter.Exclude], 2, 5, 5, 1)
+        self.layout_.addWidget(self.transfer_buttons[Filter.Include], 5, 3)
+        self.layout_.addWidget(self.transfer_buttons[Filter.Exclude], 3, 3)
 
     def init_style(self):
         self.layout_.setRowMinimumHeight(3, 20)
@@ -50,8 +60,10 @@ class TransferWidget(QWidget, WidgetControl):
 
     def init_control(self):
         # region: Link the two button groups as exclusive:
-        self.containers["left"].button_group.exclusive_groups.append(self.containers["right"].button_group)
-        self.containers["right"].button_group.exclusive_groups.append(self.containers["left"].button_group)
+        self.containers[Filter.Include].button_group.exclusive_groups. \
+            append(self.containers[Filter.Exclude].button_group)
+        self.containers[Filter.Exclude].button_group.exclusive_groups. \
+            append(self.containers[Filter.Include].button_group)
         # endregion
         for key, button in self.transfer_buttons.items():
             button.clicked.connect(lambda *, k=key: self.transfer_cards(k))
@@ -62,33 +74,29 @@ class TransferWidget(QWidget, WidgetControl):
     def layout_(self) -> QGridLayout:
         return self.layout()
 
-    def transfer_cards(self, direction: str):
-
-        if direction == "left":
-            from_container = "right"
-            to_container = "left"
-        else:
-            from_container = "left"
-            to_container = "right"
+    def transfer_cards(self, direction: Filter):
+        from_container = ~direction
+        to_container = direction
 
         card_buttons: list[CardButton] = self.containers[from_container].button_group.get_by_check_state()
         for card_button in card_buttons:
             card = card_button.card
             self.containers[from_container].remove_card(card)
             self.containers[to_container].add_card(card)
+            card.filter = to_container
 
 
 if __name__ == '__main__':
     app = QApplication()
     win = TransferWidget()
 
-    win.containers["left"].add_card(CardData("A"))
-    win.containers["left"].add_card(CardData("C"))
-    win.containers["left"].add_card(CardData("B"))
-    win.containers["left"].add_card(CardData("D"))
-    win.containers["right"].add_card(CardData("A", 1.234))
-    win.containers["right"].add_card(CardData("B", 2.234))
-    win.containers["right"].add_card(CardData("C"))
-    win.containers["right"].add_card(CardData("D"))
+    win.containers[Filter.Include].add_card(CardData("A"))
+    win.containers[Filter.Include].add_card(CardData("C"))
+    win.containers[Filter.Include].add_card(CardData("B"))
+    win.containers[Filter.Include].add_card(CardData("D"))
+    win.containers[Filter.Exclude].add_card(CardData("A", 1.234))
+    win.containers[Filter.Exclude].add_card(CardData("B", 2.234))
+    win.containers[Filter.Exclude].add_card(CardData("C"))
+    win.containers[Filter.Exclude].add_card(CardData("D"))
     win.show()
     app.exec()

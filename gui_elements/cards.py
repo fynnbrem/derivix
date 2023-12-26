@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QLineEdit, QHBoxLayout, QBoxLayout
@@ -10,10 +10,14 @@ from gui_elements.linked_buttons import LinkedButton, ButtonGroup
 from gui_elements.number_line_edit import NumberEntry
 from utils import SharedAttribute
 
+if TYPE_CHECKING:
+    from gui_elements.transfer_widget import Filter
+
 
 @dataclass
 class CardData:
     symbol: Symbol
+    filter: "Filter"
     linked_widget: Optional[QWidget] = field(init=False)
     container: Optional["CardContainer"] = field(init=False)
 

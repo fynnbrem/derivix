@@ -12,6 +12,7 @@ from sympy import diff, Mul, latex, Symbol
 from sympy.parsing.latex import parse_latex
 
 from utils import MutableBool
+
 logging.basicConfig(level=logging.INFO)
 TEMP = tempfile.TemporaryDirectory()
 TEMP_PATH = Path(TEMP.name)
@@ -40,14 +41,32 @@ def get_symbols(formula: str):
     return symbols
 
 
-def as_gaussian_uncertainity(formulas: dict[Symbol, Mul]) -> str:
+def as_gaussian_uncertainty(formulas: dict[Symbol, Mul]) -> str:
+    """Concatenates all formulas to a single formula expressing them all as component of gaussian uncertainty.
+
+    This just concatenates them according to gauss, the derivation to get the corresponding
+    formulas must be done beforehand.
+
+    `formulas` is expected to be a dict where for each formula, the key is the symbol it was partially derived by.
+    If `formulas` is empty, the resulting formula will be "0".
+    """
     latex_formulas = list()
-    for symbol, formula in formulas.items():
-        formula = latex(formula) + rf"\cdot \Delta {symbol.name}"
-        formula = r"\left(" + formula + r"\right)^2"
-        latex_formulas.append(formula)
-    full_formula = (" + ".join(latex_formulas))
-    full_formula = "\Delta f = \sqrt{" + full_formula + "}"
+    if len(formulas) != 0:
+        for symbol, formula in formulas.items():
+            # region: Format each formula:
+            # 1. Add the corresponding delta factor
+            # 2. Put it in brackets
+            # 3. Square it
+            formula = latex(formula) + rf"\cdot \Delta {symbol.name}"
+            formula = r"\left(" + formula + r"\right)^2"
+            latex_formulas.append(formula)
+            # endregion
+        formula_body = (" + ".join(latex_formulas))
+        formula_body = r"\sqrt{" + formula_body + "}"
+    else:
+        formula_body = "0"
+
+    full_formula = r"\Delta f =  " + formula_body
     return full_formula
 
 

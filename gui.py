@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 from pathlib import Path
 from typing import Optional
 
@@ -9,12 +10,12 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLineEdit, QGr
 from sympy import Mul
 from sympy.parsing.latex import parse_latex
 
-from deriver import latex_to_svg, Formula, derive_by_symbols, as_gaussian_uncertainity
+from deriver import latex_to_svg, Formula, derive_by_symbols, as_gaussian_uncertainty
 from gui_elements.abstracts import WidgetControl
 from gui_elements.cards import CardData
 from gui_elements.formula_display import FormulaDisplay
 from gui_elements.prefabs import LabelWithLine
-from gui_elements.transfer_widget import TransferWidget
+from gui_elements.transfer_widget import TransferWidget, Filter
 from res import ToolIcons
 from utils import MutableBool
 from utils.math_util import CONSTANTS
@@ -120,15 +121,13 @@ class MainWindow(QMainWindow, WidgetControl):
     def push_primary_formula(self, formula: Formula):
         self.formula = formula
         self.input_formula.display_mode(formula.svg_file, formula.latex)
-        symbols = separate_symbols(formula.formula.free_symbols)
-        for card in symbols["variable"]:
-            self.symbol_manager.containers["left"].add_card(card)
-        for card in symbols["constant"]:
-            self.symbol_manager.containers["right"].add_card(card)
-
+        cards = create_cards_from_symbols(formula.formula.free_symbols)
+        for card in cards:
+            self.symbol_manager.containers[card.filter].add_card(card)
     def start_derivation(self):
-        derived_formulas = derive_by_symbols(self.formula.formula, self.formula.formula.free_symbols)
-        gaussian_formula = as_gaussian_uncertainity(derived_formulas)
+        cards = list(self.symbol_manager.containers[Filter.Include].cards)
+        derived_formulas = derive_by_symbols(self.formula.formula, [c.symbol for c in cards])
+        gaussian_formula = as_gaussian_uncertainty(derived_formulas)
         svg_file = latex_to_svg(gaussian_formula)
         self.error_formula.display_mode(svg_file, gaussian_formula)
 
@@ -192,21 +191,18 @@ class ImageWorker(QRunnable):
     def terminate(self):
         self._force_terminate.state = True
 
-def separate_symbols(symbols: set[sympy.core.symbol.Symbol]):
-    separated_symbols = {"variable": list(), "constant": list()}
+def create_cards_from_symbols(symbols: set[sympy.core.symbol.Symbol]) -> list[CardData]:
+    cards = list()
     for symbol in symbols:
         try:
             value = CONSTANTS[symbol.name]
         except KeyError:
             value = None
-        card = CardData(symbol)
+        card = CardData(symbol, Filter.Include)
         card.primary.v = value
         card.secondary.v = None
-        if value is None:
-            separated_symbols["variable"].append(card)
-        else:
-            separated_symbols["constant"].append(card)
-    return separated_symbols
+        cards.append(card)
+    return cards
 
 
 if __name__ == '__main__':
