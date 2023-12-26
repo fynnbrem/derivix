@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton, QLabel
 
 from gui_elements.abstracts import WidgetControl
-from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton
+from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton, MeasurandCardContainer
 
 
 class TransferWidget(QWidget, WidgetControl):
@@ -18,7 +18,7 @@ class TransferWidget(QWidget, WidgetControl):
 
     def init_content(self):
         self.containers = dict()
-        self.containers["left"] = InputCardContainer()
+        self.containers["left"] = MeasurandCardContainer()
         self.containers["right"] = InputCardContainer()
         self.transfer_buttons = dict()
         self.transfer_buttons["left"] = QPushButton()
@@ -31,8 +31,8 @@ class TransferWidget(QWidget, WidgetControl):
     def init_positions(self):
         self.setLayout(QGridLayout())
         self.layout_.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.layout_.addWidget(QLabel("Variables"), 1, 1)
-        self.layout_.addWidget(QLabel("Constants"), 1, 5)
+        self.layout_.addWidget(QLabel("Include"), 1, 1)
+        self.layout_.addWidget(QLabel("Exclude"), 1, 5)
         self.layout_.addWidget(self.containers["left"], 2, 1, 5, 1)
         self.layout_.addWidget(self.containers["right"], 2, 5, 5, 1)
         self.layout_.addWidget(self.transfer_buttons["left"], 5, 3)

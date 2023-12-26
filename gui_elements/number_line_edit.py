@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QLineEdit, QApplication, QWidget, QVBoxLayout
 
 from res.strings import invalid_number_format_error
 from utils.number_formatting import congregate_zeroes, number_to_scientific
-
+from utils.validation.validator import Validator
 
 class NumberEntry(QLineEdit):
     """A ´QLineEdit´ dedicated to working with numbers.
@@ -57,6 +57,8 @@ class NumberEntry(QLineEdit):
                 self.setStyleSheet("")
                 self.setToolTip("")
 
+
+
     def update_number(self):
         """Update the `self.number` by parsing the input text.
         Also determines `self.valid`.
@@ -103,6 +105,9 @@ class NumberEntry(QLineEdit):
             self.setText(f_number)
         else:
             self.setText("")
+
+
+
 
 
 if __name__ == '__main__':

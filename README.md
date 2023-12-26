@@ -1,11 +1,12 @@
-![](https://github.com/fynnbrem/derivix/blob/master/res/images/banner.png?raw=True)
+![Product Banner](https://github.com/fynnbrem/derivix/blob/master/res/images/banner.png)
 
 # Introduction
-A small programm to help with generating and handling complex formulas for gaussian uncertainty.
+![Sample of formula generation (light mode)](https://github.com/fynnbrem/derivix/blob/master/res/images/introduction-light.png#gh-light-mode-only)
+![Sample of formula generation (dark mode)](https://github.com/fynnbrem/derivix/blob/master/res/images/introduction-dark.png#gh-dark-mode-only)
 
+_derivix_ is a small programm to help with generating and handling complex formulas for gaussian uncertainty.
 
-
-All that is required is the root formula.
+All that is required is the root formula
 The partial derivations and the resulting formula for gaussian uncertainty will be automatically determined.
 
 # Features

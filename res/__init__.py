@@ -41,8 +41,8 @@ class ToolIcons(Images):
 
     var_x = "var_x.png"
     var_f = "var_f.png"
-    var_c_delta = "var_c_delta.png"
-    var_v_delta = "var_v_delta.png"
+    var_delta_c = "var_delta_C.png"
+    var_delta_v = "var_delta_V.png"
     copy = "copy.png"
 
     @classmethod

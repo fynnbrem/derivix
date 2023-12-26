@@ -62,13 +62,13 @@ class MainWindow(QMainWindow, WidgetControl):
         layout.addWidget(self.symbol_manager, layout.rowCount(), 1, 1, -1)
 
         layout.addWidget(LabelWithLine(
-            "<h3>Error Formula</h3>", pixmap=ToolIcons.var_c_delta.get_pixmap()),
+            "<h3>Error Formula</h3>", pixmap=ToolIcons.var_delta_c.get_pixmap()),
             layout.rowCount(), 1, 1, -1
         )
         layout.addWidget(self.error_formula, layout.rowCount(), 1, 1, -1)
 
         layout.addWidget(LabelWithLine(
-            "<h3>Partial Derivations</h3>", pixmap=ToolIcons.var_v_delta.get_pixmap()),
+            "<h3>Partial Derivations</h3>", pixmap=ToolIcons.var_delta_v.get_pixmap()),
             layout.rowCount(), 1, 1, -1
         )
 

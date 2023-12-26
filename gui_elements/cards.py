@@ -13,6 +13,7 @@ from gui_elements.number_line_edit import NumberEntry
 class CardData:
     name: str
     value: Optional[float] = None
+    secondary: Optional[float] = None
     linked_widget: Optional[QWidget] = field(init=False)
     container: Optional["CardContainer"] = field(init=False)
 
@@ -29,7 +30,11 @@ class CardData:
     def set_value(self, value):
         self.value = value
 
+    def get_secondy(self):
+        return self.secondary
 
+    def set_secondary(self, value):
+        self.secondary = value
 class CardButton(LinkedButton):
     """Extends on the `LinkedButton` by offering an attribute to refer to the corresponding `CardData`.
     Helps in jumping from a button action to the corresponding card.
@@ -165,6 +170,18 @@ class InputCard(QFrame, WidgetControl):
         return self.layout()
 
 
+class MeasurandCard(InputCard):
+    default_width = 250
+    def init_content(self):
+        super().init_content()
+        self.second_input = NumberEntry(self.card.get_secondy, self.card.set_secondary)
+
+    def init_positions(self):
+        super().init_positions()
+        self.layout_.addWidget(QLabel("±"))
+        self.layout_.addWidget(self.second_input)
+
+
 class InputCardContainer(CardContainer, WidgetControl):
     card_widget_type = InputCard
 
@@ -179,7 +196,7 @@ class InputCardContainer(CardContainer, WidgetControl):
         self.layout_.setContentsMargins(0, 0, 0, 0)
 
     def init_style(self):
-        self.setFixedWidth(InputCard.default_width)
+        self.setFixedWidth(self.card_widget_type.default_width)
 
     @property
     def layout_(self) -> QGridLayout:
@@ -190,3 +207,8 @@ class InputCardContainer(CardContainer, WidgetControl):
             self.layout_.takeAt(0)
         for card in self.cards:
             self.layout_.addWidget(card.linked_widget)
+
+
+class MeasurandCardContainer(InputCardContainer):
+    card_widget_type = MeasurandCard
+
