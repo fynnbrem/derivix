@@ -3,19 +3,26 @@ from typing import Optional, Type, Union
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QLineEdit, QHBoxLayout, QBoxLayout
+from sympy import Symbol
 
 from gui_elements.abstracts import WidgetControl
 from gui_elements.linked_buttons import LinkedButton, ButtonGroup
 from gui_elements.number_line_edit import NumberEntry
+from utils import SharedAttribute
 
 
 @dataclass
 class CardData:
-    name: str
-    value: Optional[float] = None
-    secondary: Optional[float] = None
+    symbol: Symbol
     linked_widget: Optional[QWidget] = field(init=False)
     container: Optional["CardContainer"] = field(init=False)
+
+    primary: SharedAttribute[Optional[float | int]] = field(init=False)
+    secondary: SharedAttribute[Optional[float | int]] = field(init=False)
+
+    def __post_init__(self):
+        self.primary = SharedAttribute()
+        self.secondary = SharedAttribute()
 
     def unlink(self):
         """Unlinks this card from its container by removing the reference to it and deleting the widget."""
@@ -24,17 +31,11 @@ class CardData:
         self.linked_widget = None
         self.container = None
 
-    def get_value(self):
-        return self.value
+    @property
+    def name(self):
+        return self.symbol.name
 
-    def set_value(self, value):
-        self.value = value
 
-    def get_secondy(self):
-        return self.secondary
-
-    def set_secondary(self, value):
-        self.secondary = value
 class CardButton(LinkedButton):
     """Extends on the `LinkedButton` by offering an attribute to refer to the corresponding `CardData`.
     Helps in jumping from a button action to the corresponding card.
@@ -83,7 +84,6 @@ class CardContainer(QFrame):
         for card in self.cards:
             self.remove_card(card, do_place=False)
         self._place_cards()
-
 
     def _reorder_cards(self):
         def key(c: CardData): return c.name
@@ -140,7 +140,7 @@ class InputCard(QFrame, WidgetControl):
     def init_content(self):
         self.display = CardButton(self.card, self.button_group)
         self.equals = QLabel()
-        self.input = NumberEntry(self.card.get_value, self.card.set_value)
+        self.input = NumberEntry(self.card.primary)
 
     def init_values(self):
         self.display.setText(self.card.name)
@@ -172,9 +172,10 @@ class InputCard(QFrame, WidgetControl):
 
 class MeasurandCard(InputCard):
     default_width = 250
+
     def init_content(self):
         super().init_content()
-        self.second_input = NumberEntry(self.card.get_secondy, self.card.set_secondary)
+        self.second_input = NumberEntry(self.card.secondary)
 
     def init_positions(self):
         super().init_positions()
@@ -211,4 +212,3 @@ class InputCardContainer(CardContainer, WidgetControl):
 
 class MeasurandCardContainer(InputCardContainer):
     card_widget_type = MeasurandCard
-

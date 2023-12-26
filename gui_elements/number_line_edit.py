@@ -1,12 +1,14 @@
 """This module contains the `NumberEntry` used to manage and validate numbers in a text entry.
 This module does not contain the corresponding formatting logic itself."""
+from typing import Callable
 
 from PySide6 import QtGui
 from PySide6.QtWidgets import QLineEdit, QApplication, QWidget, QVBoxLayout
 
 from res.strings import invalid_number_format_error
+from utils import SharedAttribute
 from utils.number_formatting import congregate_zeroes, number_to_scientific
-from utils.validation.validator import Validator
+
 
 class NumberEntry(QLineEdit):
     """A ´QLineEdit´ dedicated to working with numbers.
@@ -15,16 +17,13 @@ class NumberEntry(QLineEdit):
     Also handles validation of the input text.
     """
 
-    # number: Property[float | int | None]
-    """The represented number. Always contains the original value, 
-    which might not be shown to its full extent by `display_mode()`"""
     _valid: bool
 
-    def __init__(self, number_get, number_set):
+    def __init__(self, number: SharedAttribute[int | float]):
         super().__init__()
         self._valid = True
 
-        self.number = property(number_get, number_set)
+        self.number = number
         self.display_mode()
 
         self.textEdited.connect(self.update_number)
@@ -32,6 +31,7 @@ class NumberEntry(QLineEdit):
     def focusInEvent(self, event: QtGui.QFocusEvent) -> None:
         """Switch to edit mode when gaining focus."""
         super().focusInEvent(event)
+
         self.edit_mode()
 
     def focusOutEvent(self, event: QtGui.QFocusEvent) -> None:
@@ -57,8 +57,6 @@ class NumberEntry(QLineEdit):
                 self.setStyleSheet("")
                 self.setToolTip("")
 
-
-
     def update_number(self):
         """Update the `self.number` by parsing the input text.
         Also determines `self.valid`.
@@ -68,17 +66,17 @@ class NumberEntry(QLineEdit):
         valid = True
 
         if self.text().strip() == "":
-            self.number.fset(None)
+            self.number.v = (None)
         else:
             text = self.text().replace(",", "_")
             # ↑ Replace group-separating commas with underscores so Python can evaluate them normally.
             try:
-                self.number.fset(int(text))
+                self.number.v = int(text)
             except ValueError:
                 try:
-                    self.number.fset(float(text))
+                    self.number.v = float(text)
                 except ValueError:
-                    self.number.fset(None)
+                    self.number.v = None
                     valid = False
         self.valid = valid
 
@@ -88,8 +86,8 @@ class NumberEntry(QLineEdit):
         """
         if not self.valid:
             return
-        if self.number.fget() is not None:
-            f_number = congregate_zeroes(self.number.fget())
+        if self.number.v is not None:
+            f_number = congregate_zeroes(self.number.v)
             self.setText(f_number)
         else:
             self.setText("")
@@ -100,14 +98,11 @@ class NumberEntry(QLineEdit):
         """
         if not self.valid:
             return
-        if self.number.fget() is not None:
-            f_number = number_to_scientific(self.number.fget())
+        if self.number.v is not None:
+            f_number = number_to_scientific(self.number.v)
             self.setText(f_number)
         else:
             self.setText("")
-
-
-
 
 
 if __name__ == '__main__':

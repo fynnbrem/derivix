@@ -199,7 +199,9 @@ def separate_symbols(symbols: set[sympy.core.symbol.Symbol]):
             value = CONSTANTS[symbol.name]
         except KeyError:
             value = None
-        card = CardData(symbol.name, value)
+        card = CardData(symbol)
+        card.primary.v = value
+        card.secondary.v = None
         if value is None:
             separated_symbols["variable"].append(card)
         else:
