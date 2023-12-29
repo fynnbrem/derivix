@@ -18,8 +18,7 @@ from derivix.gui_elements.transfer_widget import TransferWidget, Filter
 from data import ToolIcons
 from derivix.utils import MutableBool
 from derivix.utils.math_util import CONSTANTS
-
-
+from derivix.utils.workers import ExceptionWorkerSignals, ExceptionWorker, emit_exception
 
 
 class MainWindow(QMainWindow, WidgetControl):
@@ -123,6 +122,7 @@ class MainWindow(QMainWindow, WidgetControl):
         cards = create_cards_from_symbols(formula.formula.free_symbols)
         for card in cards:
             self.symbol_manager.containers[card.filter].add_card(card)
+
     def start_derivation(self):
         cards = list(self.symbol_manager.containers[Filter.Include].cards)
         derived_formulas = derive_by_symbols(self.formula.formula, [c.symbol for c in cards])
@@ -130,65 +130,33 @@ class MainWindow(QMainWindow, WidgetControl):
         svg_file = latex_to_svg(gaussian_formula)
         self.error_formula.display_mode(svg_file, gaussian_formula)
 
-
-
     @property
     def layout_(self) -> QGridLayout:
         return self.centralWidget().layout()
 
 
-
-
-class DeriveWorkerSignals(QObject):
+class ImageWorkerSignals(ExceptionWorkerSignals):
     finished = Signal(Formula)
-    error = Signal(Exception)
-
-class DeriveWorker(QRunnable):
-    def __init__(self, formula: Mul, variables: set[sympy.Symbol]):
-        super().__init__()
-        self.signals = DeriveWorkerSignals()
-        self.formula = formula
-        self.variables = variables
-        self._force_terminate = MutableBool(False)
-
-    def run(self) -> None:
-        try:
-            svg_file = latex_to_svg(self.formula, self._force_terminate)
-            formula = parse_latex(self.formula)
-            formula_data = Formula(svg_file=svg_file, formula=formula, latex=self.formula)
-            if not self._force_terminate.state:
-                self.signals.finished.emit(formula_data)
-        except Exception as err:
-            self.signals.error.emit(err)
-
-    def terminate(self):
-        self._force_terminate.state = True
 
 
-class ImageWorkerSignals(QObject):
-    finished = Signal(Formula)
-    error = Signal(Exception)
-
-
-class ImageWorker(QRunnable):
+class ImageWorker(ExceptionWorker):
     def __init__(self, formula: str):
         super().__init__()
         self.signals = ImageWorkerSignals()
         self.formula = formula
         self._force_terminate = MutableBool(False)
 
+    @emit_exception
     def run(self) -> None:
-        try:
-            svg_file = latex_to_svg(self.formula, self._force_terminate)
-            formula = parse_latex(self.formula)
-            formula_data = Formula(svg_file=svg_file, formula=formula, latex=self.formula)
-            if not self._force_terminate.state:
-                self.signals.finished.emit(formula_data)
-        except Exception as err:
-            self.signals.error.emit(err)
+        svg_file = latex_to_svg(self.formula, self._force_terminate)
+        formula = parse_latex(self.formula)
+        formula_data = Formula(svg_file=svg_file, formula=formula, latex=self.formula)
+        if not self._force_terminate.state:
+            self.signals.finished.emit(formula_data)
 
     def terminate(self):
         self._force_terminate.state = True
+
 
 def create_cards_from_symbols(symbols: set[sympy.core.symbol.Symbol]) -> list[CardData]:
     cards = list()

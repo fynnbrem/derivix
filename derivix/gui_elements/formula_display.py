@@ -107,7 +107,7 @@ class FormulaDisplay(QFrame, WidgetControl):
                 text += "Unknown error."
                 logging.error(err)
         else:
-            text = f"An unexpected error occurred during parsing:\n{type(err)}"
+            text = f"An unexpected error occurred during parsing:\n{str(err)}"
             logging.error(err)
 
         self.formula_widget.setText(text)
