@@ -1,11 +1,11 @@
-from enum import Enum, Flag
+from enum import Flag
 from typing import Dict, Union
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QApplication, QPushButton, QLabel
 
-from gui_elements.abstracts import WidgetControl
-from gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton, MeasurandCardContainer
+from derivix.gui_elements.abstracts import WidgetControl
+from derivix.gui_elements.cards import CardData, SquareCardContainer, InputCardContainer, CardButton, MeasurandCardContainer
 
 
 class Filter(Flag):

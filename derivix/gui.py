@@ -1,5 +1,4 @@
 import logging
-from itertools import chain
 from pathlib import Path
 from typing import Optional
 
@@ -10,17 +9,17 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLineEdit, QGr
 from sympy import Mul
 from sympy.parsing.latex import parse_latex
 
-from deriver import latex_to_svg, Formula, derive_by_symbols, as_gaussian_uncertainty
-from gui_elements.abstracts import WidgetControl
-from gui_elements.cards import CardData
-from gui_elements.formula_display import FormulaDisplay
-from gui_elements.prefabs import LabelWithLine
-from gui_elements.transfer_widget import TransferWidget, Filter
-from res import ToolIcons
-from utils import MutableBool
-from utils.math_util import CONSTANTS
+from derivix.deriver import latex_to_svg, Formula, derive_by_symbols, as_gaussian_uncertainty
+from derivix.gui_elements.abstracts import WidgetControl
+from derivix.gui_elements.cards import CardData
+from derivix.gui_elements.formula_display import FormulaDisplay
+from derivix.gui_elements.prefabs import LabelWithLine
+from derivix.gui_elements.transfer_widget import TransferWidget, Filter
+from data import ToolIcons
+from derivix.utils import MutableBool
+from derivix.utils.math_util import CONSTANTS
 
-app = QApplication()
+
 
 
 class MainWindow(QMainWindow, WidgetControl):
@@ -206,6 +205,8 @@ def create_cards_from_symbols(symbols: set[sympy.core.symbol.Symbol]) -> list[Ca
 
 
 if __name__ == '__main__':
+    app = QApplication()
+
     win = MainWindow()
     win.show()
     app.exec()

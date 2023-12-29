@@ -2,16 +2,16 @@ from dataclasses import dataclass, field
 from typing import Optional, Type, Union, TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QLineEdit, QHBoxLayout, QBoxLayout
+from PySide6.QtWidgets import QWidget, QFrame, QGridLayout, QLabel, QHBoxLayout, QBoxLayout
 from sympy import Symbol
 
-from gui_elements.abstracts import WidgetControl
-from gui_elements.linked_buttons import LinkedButton, ButtonGroup
-from gui_elements.number_line_edit import NumberEntry
-from utils import SharedAttribute
+from derivix.gui_elements.abstracts import WidgetControl
+from derivix.gui_elements.linked_buttons import LinkedButton, ButtonGroup
+from derivix.gui_elements.number_line_edit import NumberEntry
+from derivix.utils import SharedAttribute
 
 if TYPE_CHECKING:
-    from gui_elements.transfer_widget import Filter
+    from derivix.gui_elements.transfer_widget import Filter
 
 
 @dataclass
