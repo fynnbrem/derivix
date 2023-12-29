@@ -11,7 +11,7 @@ from matplotlib import rc
 from sympy import diff, Mul, latex, Symbol
 from sympy.parsing.latex import parse_latex
 
-from utils import MutableBool
+from derivix.utils import MutableBool
 
 logging.basicConfig(level=logging.INFO)
 TEMP = tempfile.TemporaryDirectory()

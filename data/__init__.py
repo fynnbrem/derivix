@@ -51,6 +51,6 @@ class ToolIcons(Images):
 
     @classmethod
     def get_base_folder(cls):
-        return Path() / "res" / "images"
+        return Path() / "data" / "images"
 
 ToolIcons.validate_existence()

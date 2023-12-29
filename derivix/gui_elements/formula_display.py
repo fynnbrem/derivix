@@ -4,13 +4,12 @@ from typing import Optional, Literal
 
 import pyperclip
 from PySide6.QtGui import Qt, QPixmap
-from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QGridLayout, QVBoxLayout, QWidget, QSizePolicy, \
+from PySide6.QtWidgets import QLabel, QBoxLayout, QFrame, QPushButton, QVBoxLayout, QSizePolicy, \
     QApplication
 
-from gui_elements.abstracts import WidgetControl
-from gui_elements.animations import JumpyDots
-from res import ToolIcons
+from derivix.gui_elements.abstracts import WidgetControl
+from derivix.gui_elements.animations import JumpyDots
+from data import ToolIcons
 
 
 class FormulaDisplay(QFrame, WidgetControl):

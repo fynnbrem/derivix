@@ -1,13 +1,12 @@
 """This module contains the `NumberEntry` used to manage and validate numbers in a text entry.
 This module does not contain the corresponding formatting logic itself."""
-from typing import Callable
 
 from PySide6 import QtGui
 from PySide6.QtWidgets import QLineEdit, QApplication, QWidget, QVBoxLayout
 
-from res.strings import invalid_number_format_error
-from utils import SharedAttribute
-from utils.number_formatting import congregate_zeroes, number_to_scientific
+from data.strings import invalid_number_format_error
+from derivix.utils import SharedAttribute
+from derivix.utils.number_formatting import congregate_zeroes, number_to_scientific
 
 
 class NumberEntry(QLineEdit):

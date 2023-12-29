@@ -2,7 +2,7 @@
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QApplication, QSizePolicy
 
-from res import ToolIcons
+from data import ToolIcons
 
 
 class LabelWithLine(QWidget):
