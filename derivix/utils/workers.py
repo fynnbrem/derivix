@@ -34,7 +34,9 @@ class ExceptionWorker(QRunnable):
 
 
 def raise_exc(err: Exception):
-    raise RuntimeError("Thready") from err
+    """Raise the passed `err` as is.
+    Does not do anything special but can be used where a callable is needed to raise an exception."""
+    raise err
 
 
 if __name__ == '__main__':

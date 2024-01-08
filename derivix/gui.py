@@ -1,12 +1,15 @@
 import logging
+import os
+from multiprocessing import Pool
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 import sympy.core.symbol
 from PySide6.QtCore import QThreadPool, QRunnable, Signal, QObject, QTimer
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLineEdit, QGridLayout, QPushButton, QLabel
 from sympy import Mul
+from sympy.core import symbol
 from sympy.parsing.latex import parse_latex
 
 from derivix.deriver import latex_to_svg, Formula, derive_by_symbols, as_gaussian_uncertainty
@@ -17,8 +20,9 @@ from derivix.gui_elements.prefabs import LabelWithLine
 from derivix.gui_elements.transfer_widget import TransferWidget, Filter
 from data import ToolIcons
 from derivix.utils import MutableBool
+from derivix.utils.env import TEMP_PATH
 from derivix.utils.math_util import CONSTANTS
-from derivix.utils.workers import ExceptionWorkerSignals, ExceptionWorker, emit_exception
+from derivix.utils.workers import ExceptionWorkerSignals, ExceptionWorker, emit_exception, raise_exc
 
 
 class MainWindow(QMainWindow, WidgetControl):
@@ -36,7 +40,7 @@ class MainWindow(QMainWindow, WidgetControl):
         self.formula_input = QLineEdit()
         self.derive_button = QPushButton()
         self.input_formula = FormulaDisplay(show_copy=False)
-        self.error_formula = FormulaDisplay()
+        self.adv_formula = FormulaDisplay()
 
         self.symbol_manager = TransferWidget()
 
@@ -64,7 +68,7 @@ class MainWindow(QMainWindow, WidgetControl):
             "<h3>Error Formula</h3>", pixmap=ToolIcons.var_delta_c.get_pixmap()),
             layout.rowCount(), 1, 1, -1
         )
-        layout.addWidget(self.error_formula, layout.rowCount(), 1, 1, -1)
+        layout.addWidget(self.adv_formula, layout.rowCount(), 1, 1, -1)
 
         layout.addWidget(LabelWithLine(
             "<h3>Partial Derivations</h3>", pixmap=ToolIcons.var_delta_v.get_pixmap()),
@@ -80,7 +84,7 @@ class MainWindow(QMainWindow, WidgetControl):
         self.derive_button.setText("Derive")
 
     def init_control(self):
-        self.derive_button.clicked.connect(self.start_derivation)
+        self.derive_button.clicked.connect(self.gen_adv_formula)
 
         self.thread_pool = QThreadPool()
         self.worker: Optional[ImageWorker] = None
@@ -89,7 +93,7 @@ class MainWindow(QMainWindow, WidgetControl):
         self.image_timer.setSingleShot(True)
 
         def queue_render():
-            self.clear_primary_formula()
+            self.clear_base_formula()
             if self.formula_input.text().strip() == "":
                 self.input_formula.standby_mode()
                 self.image_timer.stop()
@@ -104,58 +108,98 @@ class MainWindow(QMainWindow, WidgetControl):
             logging.debug("Starting render")
             if self.worker is not None:
                 self.worker.terminate()
-            self.worker = ImageWorker(self.formula_input.text())
-            self.worker.signals.finished.connect(self.push_primary_formula)
+
+            latex = self.formula_input.text()
+            self.worker = ImageWorker([latex])
+
+            self.worker.signals.finished.connect(lambda svgs, *, l=latex: push_formula(svgs[0], l))
             self.worker.signals.error.connect(self.input_formula.error_mode)
             self.thread_pool.start(self.worker)
+
+        def push_formula(svg_file: Path, latex: str):
+            formula = Formula(svg_file=svg_file, formula=parse_latex(latex), latex=latex)
+            self.push_base_formula(formula)
 
         self.image_timer.timeout.connect(start_render)
         self.formula_input.textChanged.connect(queue_render)
 
-    def clear_primary_formula(self):
+    def clear_base_formula(self):
         for container in self.symbol_manager.containers.values():
             container.remove_all()
 
-    def push_primary_formula(self, formula: Formula):
+    def push_base_formula(self, formula: Formula):
         self.formula = formula
         self.input_formula.display_mode(formula.svg_file, formula.latex)
         cards = create_cards_from_symbols(formula.formula.free_symbols)
         for card in cards:
             self.symbol_manager.containers[card.filter].add_card(card)
 
-    def start_derivation(self):
+    def gen_adv_formula(self):
         cards = list(self.symbol_manager.containers[Filter.Include].cards)
-        derived_formulas = derive_by_symbols(self.formula.formula, [c.symbol for c in cards])
-        gaussian_formula = as_gaussian_uncertainty(derived_formulas)
-        svg_file = latex_to_svg(gaussian_formula)
-        self.error_formula.display_mode(svg_file, gaussian_formula)
+        symbols = [c.symbol for c in cards]
+
+        worker = DeriveWorker(self.formula.formula, symbols)
+        worker.signals.error.connect(raise_exc)
+
+        def invoke_rendering(w=worker):
+            derived_formulas = [sympy.latex(f) for f in w.derived_formulas]
+            self.render_adv_formula(w.gaussian_formula, derived_formulas)
+
+        worker.signals.finished.connect(invoke_rendering)
+
+        self.thread_pool.start(worker)
+
+    def render_adv_formula(self, gaussian_formula: str, derived_formulas: Iterable[str]):
+        """Renders the formulas produced by `gen_adv_formula`"""
+        worker = ImageWorker([gaussian_formula])
+        worker.signals.error.connect(raise_exc)
+        worker.signals.finished.connect()
+
+        self.adv_formula.display_mode(svg_file, gaussian_formula)
 
     @property
     def layout_(self) -> QGridLayout:
         return self.centralWidget().layout()
 
 
-class ImageWorkerSignals(ExceptionWorkerSignals):
-    finished = Signal(Formula)
+class DeriveWorkerSignals(ExceptionWorkerSignals):
+    finished = Signal()
 
 
-class ImageWorker(ExceptionWorker):
-    def __init__(self, formula: str):
+class DeriveWorker(ExceptionWorker):
+    def __init__(self, formula: Mul, symbols: Iterable[symbol]):
         super().__init__()
-        self.signals = ImageWorkerSignals()
+        self.signals = DeriveWorkerSignals()
+
         self.formula = formula
-        self._force_terminate = MutableBool(False)
+        self.symbols = symbols
 
     @emit_exception
     def run(self) -> None:
-        svg_file = latex_to_svg(self.formula, self._force_terminate)
-        formula = parse_latex(self.formula)
-        formula_data = Formula(svg_file=svg_file, formula=formula, latex=self.formula)
-        if not self._force_terminate.state:
-            self.signals.finished.emit(formula_data)
+        self.derived_formulas = derive_by_symbols(self.formula, self.symbols)
+        self.gaussian_formula = as_gaussian_uncertainty(self.derived_formulas)
+
+
+class ImageWorkerSignals(ExceptionWorkerSignals):
+    finished = Signal(tuple)
+
+
+class ImageWorker(ExceptionWorker):
+    def __init__(self, formulas: list[str]):
+        super().__init__()
+        self.signals = ImageWorkerSignals()
+        self.formulas = formulas
+        self._force_terminate = False
+
+    @emit_exception
+    def run(self) -> None:
+        svg_files = [latex_to_svg(formula, TEMP_PATH) for formula in self.formulas]
+        # ↑ Could be upgraded to use multiprocessing, but right now this causes issues with matlab.
+        if not self._force_terminate:
+            self.signals.finished.emit(tuple(svg_files))
 
     def terminate(self):
-        self._force_terminate.state = True
+        self._force_terminate = True
 
 
 def create_cards_from_symbols(symbols: set[sympy.core.symbol.Symbol]) -> list[CardData]:

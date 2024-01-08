@@ -25,3 +25,4 @@ The partial derivations and the resulting formula for gaussian uncertainty will 
 # Notes
 - Requires a LaTeX distribution on your local machine to run
     - Check out [MiKTeX](https://miktex.org) for a dynamic, minimal distribution
+- During execution, there might be Pop-Ups that ask you for package installation. These are managed by your LaTeX distribution and indicate that you lack a LaTeX-package required for this app.

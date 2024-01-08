@@ -1,5 +1,3 @@
-import logging
-import tempfile
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,13 +8,6 @@ import sympy
 from matplotlib import rc
 from sympy import diff, Mul, latex, Symbol
 from sympy.parsing.latex import parse_latex
-
-from derivix.utils import MutableBool
-
-logging.basicConfig(level=logging.INFO)
-TEMP = tempfile.TemporaryDirectory()
-TEMP_PATH = Path(TEMP.name)
-logging.info(f"Created temporary folder at: `{TEMP_PATH}`")
 
 
 @dataclass
@@ -77,28 +68,22 @@ def derive_by_symbols(formula: Mul, symbols: Iterable[Symbol]) -> dict[Symbol, M
     return derivations
 
 
-def latex_to_svg(formula, terminator: MutableBool = MutableBool(False)) -> Optional[Path]:
+def latex_to_svg(formula, folder: Path) -> Optional[Path]:
     rc('text', usetex=True)
-
-    if terminator.state:
-        return None
     fig = plt.figure(figsize=(0.01, 0.01))
     fig.text(0, 0, f"${formula}$", fontsize=72)
-    file = TEMP_PATH / (str(uuid.uuid4()) + ".svg")
-    if terminator.state:
-        plt.close(fig)
-        return None
+    file = folder / (str(uuid.uuid4()) + ".svg")
 
     fig.savefig(file, format="svg", transparent=True, bbox_inches='tight', pad_inches=0.1)
     plt.close(fig)
-    if terminator.state:
-        return None
 
     return file
 
 
 if __name__ == '__main__':
     t_formula = r"x^2 \cdot \frac{e y}{z \cdot \pi \cdot \cos(v) cos(x)}"
-    get_derivations(t_formula)
-    # latex_to_svg(t_formula)
-    print(get_symbols("w a d e d x d i"))
+    latex_to_svg("E = mc^2", Path())
+
+    # get_derivations(t_formula)
+    # # latex_to_svg(t_formula)
+    # print(get_symbols("w a d e d x d i"))
