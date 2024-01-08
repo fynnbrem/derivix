@@ -35,6 +35,17 @@ class Images(Enum):
         raise NotImplementedError("Implement `get_base_folder()` to specify the folder of the icons.")
 
 
+class OtherImages(Images):
+    """A collection of images that do not fit the other categories."""
+    app_icon = "icon.png"
+
+    @classmethod
+    def get_base_folder(cls):
+        return Path() / "data" / "images"
+
+    @classmethod
+    def get_default_width(cls):
+        return 256
 
 class ToolIcons(Images):
     """A collection of small, simple icons used to indicate certain functions."""

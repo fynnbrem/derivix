@@ -2,10 +2,11 @@ import logging
 import os
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Optional, Iterable
+from threading import Thread
+from typing import Optional, Iterable, Callable
 
 import sympy.core.symbol
-from PySide6.QtCore import QThreadPool, QRunnable, Signal, QObject, QTimer
+from PySide6.QtCore import QThreadPool, QRunnable, Signal, QObject, QTimer, QMetaObject
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLineEdit, QGridLayout, QPushButton, QLabel
 from sympy import Mul
@@ -18,7 +19,7 @@ from derivix.gui_elements.cards import CardData
 from derivix.gui_elements.formula_display import FormulaDisplay
 from derivix.gui_elements.prefabs import LabelWithLine
 from derivix.gui_elements.transfer_widget import TransferWidget, Filter
-from data import ToolIcons
+from data import ToolIcons, OtherImages
 from derivix.utils import MutableBool
 from derivix.utils.env import TEMP_PATH
 from derivix.utils.math_util import CONSTANTS
@@ -34,6 +35,9 @@ class MainWindow(QMainWindow, WidgetControl):
         wid.setLayout(QGridLayout())
 
         self.init_widget()
+
+    def enqueue(self, func: Callable[[], None]):
+        QMetaObject.invokeMethod(self, func, Qt.ConnectionType.QueuedConnection)
 
     def init_content(self):
 
@@ -77,7 +81,7 @@ class MainWindow(QMainWindow, WidgetControl):
 
     def init_style(self):
         self.setWindowTitle("derivix")
-        self.setWindowIcon(QIcon(str(Path() / "res" / "images" / "icon.png")))
+        self.setWindowIcon(QIcon(OtherImages.app_icon.get_path_string()))
 
     def init_values(self):
         self.formula_input.setPlaceholderText("Enter your formula")
@@ -135,17 +139,19 @@ class MainWindow(QMainWindow, WidgetControl):
             self.symbol_manager.containers[card.filter].add_card(card)
 
     def gen_adv_formula(self):
+        self.adv_formula.loading_mode()
+
         cards = list(self.symbol_manager.containers[Filter.Include].cards)
         symbols = [c.symbol for c in cards]
 
         worker = DeriveWorker(self.formula.formula, symbols)
         worker.signals.error.connect(raise_exc)
 
-        def invoke_rendering(w=worker):
+        def finish(*, w=worker):
             derived_formulas = [sympy.latex(f) for f in w.derived_formulas]
             self.render_adv_formula(w.gaussian_formula, derived_formulas)
 
-        worker.signals.finished.connect(invoke_rendering)
+        worker.signals.finished.connect(finish)
 
         self.thread_pool.start(worker)
 
@@ -153,9 +159,17 @@ class MainWindow(QMainWindow, WidgetControl):
         """Renders the formulas produced by `gen_adv_formula`"""
         worker = ImageWorker([gaussian_formula])
         worker.signals.error.connect(raise_exc)
-        worker.signals.finished.connect()
 
-        self.adv_formula.display_mode(svg_file, gaussian_formula)
+        def finish(svg_files: tuple[Path]):
+            self.adv_formula.display_mode(svg_files[0], gaussian_formula)
+
+        worker.signals.finished.connect(finish)
+
+        self.thread_pool.start(worker)
+
+
+
+
 
     @property
     def layout_(self) -> QGridLayout:
@@ -178,6 +192,7 @@ class DeriveWorker(ExceptionWorker):
     def run(self) -> None:
         self.derived_formulas = derive_by_symbols(self.formula, self.symbols)
         self.gaussian_formula = as_gaussian_uncertainty(self.derived_formulas)
+        self.signals.finished.emit()
 
 
 class ImageWorkerSignals(ExceptionWorkerSignals):
