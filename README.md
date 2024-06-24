@@ -1,8 +1,8 @@
-![Product Banner](https://github.com/fynnbrem/derivix/blob/master/res/images/banner.png)
+![Product Banner](https://github.com/fynnbrem/derivix/blob/master/data/images/banner.png)
 
 # Introduction
-![Sample of formula generation (light mode)](https://github.com/fynnbrem/derivix/blob/master/res/images/introduction-light.png#gh-light-mode-only)
-![Sample of formula generation (dark mode)](https://github.com/fynnbrem/derivix/blob/master/res/images/introduction-dark.png#gh-dark-mode-only)
+![Sample of formula generation (light mode)](https://github.com/fynnbrem/derivix/blob/master/data/images/introduction-light.png#gh-light-mode-only)
+![Sample of formula generation (dark mode)](https://github.com/fynnbrem/derivix/blob/master/data/images/introduction-dark.png#gh-dark-mode-only)
 
 _derivix_ is a small programm to help with generating and handling complex formulas for gaussian uncertainty.
 
